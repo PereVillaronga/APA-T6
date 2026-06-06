@@ -1,3 +1,5 @@
+import re
+
 class Alumno:
     """
     Clase usada para el tratamiento de las notas de los alumnos. Cada uno
@@ -42,3 +44,50 @@ class Alumno:
         completo y la nota media del alumno con un decimal.
         """
         return f'{self.numIden}\t{self.nombre}\t{self.media():.1f}'
+
+
+
+def leeAlumnos(ficAlum):
+    """
+    Llegeix un fitxer de text amb les notes dels alumnes i retorna un
+    diccionari amb el nom de cada alumne com a clau i l'objecte Alumno com a valor.
+
+    >>> alumnos = leeAlumnos('alumnos.txt')
+    >>> for alumno in alumnos:
+    ...     print(alumnos[alumno])
+    ...
+    171	Blanca Agirrebarrenetse	9.5
+    23	Carles Balcells de Lara	4.9
+    68	David Garcia Fuster	7.0
+    """
+    dicc_alumnos = {}
+    
+    # Explicació de l'expressió regular:
+    # ^(\d+)       -> Grup 1: L'identificador (números a l'inici de la línia)
+    # \s+          -> Espais en blanc separadors
+    # (.+?)        -> Grup 2: El nom (qualsevol caràcter, però perezós per aturar-se abans de les notes)
+    # \s+          -> Espais en blanc separadors abans de les notes
+    # ([\d\.\s]+)$ -> Grup 3: Les notes (combinació de números, punts decimals i espais fins al final)
+    patron = re.compile(r"^(\d+)\s+(.+?)\s+([\d\.\s]+)$")
+
+    with open(ficAlum, 'r', encoding='utf-8') as f:
+        for linea in f:
+            linea = linea.strip()
+            if not linea:
+                continue
+                
+            match = patron.match(linea)
+            if match:
+                numIden = int(match.group(1))
+                nombre = match.group(2).strip()
+                notas_str = match.group(3).split()
+                notas = [float(nota) for nota in notas_str]
+
+                dicc_alumnos[nombre] = Alumno(nombre, numIden, notas)
+
+    return dicc_alumnos
+
+# tests del programa
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE, verbose=True)
